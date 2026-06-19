@@ -1,0 +1,6 @@
+#requires -Version 5.1
+<# Created by Dewald Pretorius #>
+param([string]$OutputPath)
+if(-not $OutputPath){$OutputPath="$([Environment]::GetFolderPath('Desktop'))\Defender_App_Portal_Reports"};New-Item $OutputPath -ItemType Directory -Force|Out-Null
+$status=Get-MpComputerStatus -ErrorAction SilentlyContinue;$services=Get-Service WinDefend,SecurityHealthService,Sense -ErrorAction SilentlyContinue|Select-Object Name,Status,StartType;$targets='security.microsoft.com','login.microsoftonline.com','graph.microsoft.com';$net=foreach($t in $targets){[pscustomobject]@{Target=$t;HTTPS443=(Test-NetConnection $t -Port 443 -InformationLevel Quiet -WarningAction SilentlyContinue)}}
+@('MICROSOFT DEFENDER APP AND PORTAL TROUBLESHOOTER','Created by Dewald Pretorius',"Generated: $(Get-Date)",($status|Format-List|Out-String -Width 220),($services|Format-Table -AutoSize|Out-String -Width 220),($net|Format-Table -AutoSize|Out-String -Width 220),'Guidance: verify onboarding, sensor health, signatures, tamper protection, licensing, portal permissions, proxy access, and device synchronization.')|Set-Content (Join-Path $OutputPath 'Report.txt') -Encoding UTF8
